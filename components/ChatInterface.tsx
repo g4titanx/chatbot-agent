@@ -34,10 +34,7 @@ export function ChatInterface() {
       setTools(initializedTools);
       setMessages([{
         role: 'assistant',
-        content: `Connected! Try:
-- check balance - View your wallet
-- get price ETH - Market analysis
-- send 0x... 0.1 - Transfer ETH`
+        content: `Connected! Available commands: check balance - View your ETH balance, get price (some_token) - Get market data, send (address) (amount) - Send ETH`
       }]);
     } else {
       setTools(null);

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.33.1",
     "@goat-sdk/adapter-eleven-labs": "^0.2.3",
     "@goat-sdk/core": "^0.4.3",
     "@goat-sdk/plugin-coingecko": "^0.2.3",
