@@ -40,7 +40,7 @@ export async function processToolCommand(tools: any, command: string) {
       });
       const ethBalance = parseInt(balance as string, 16) / 1e18;
       const data = await handlers['get price data']('ETH');
-      return `Wallet: ${ethBalance.toFixed(4)} ETH ($${(ethBalance * data.price).toFixed(2)})
+      return `Your wallet holds: ${ethBalance.toFixed(4)} ETH ($${(ethBalance * data.price).toFixed(2)})
 24h Change: ${data.change.toFixed(2)}%`;
     },
 
@@ -61,15 +61,27 @@ export async function processToolCommand(tools: any, command: string) {
     },
 
     'get price': async (symbol: string) => {
-      const data = await handlers['get price data'](symbol);
-      const volume = (data.volume / 1e9).toFixed(2);
-      const mcap = (data.marketCap / 1e9).toFixed(2);
-      
-      return `${symbol} Market Data:
-Price: $${data.price.toLocaleString()}
-24h Change: ${data.change.toFixed(2)}%
-Volume: $${volume}B
-Market Cap: $${mcap}B`;
+      const id = tokenIds[symbol];
+      if (!id) throw new Error(`Unsupported token: ${symbol}`);
+ 
+      const data = await fetch(`https://api.coingecko.com/api/v3/coins/${id}`).then(r => r.json());
+      const price = data.market_data.current_price.usd;
+      const priceChange = data.market_data.price_change_percentage_24h;
+      const marketCap = data.market_data.market_cap.usd;
+      const volume = data.market_data.total_volume.usd;
+ 
+      const sentiment = priceChange > 5 ? "strongly bullish" : 
+                       priceChange > 2 ? "bullish" :
+                       priceChange < -5 ? "strongly bearish" :
+                       priceChange < -2 ? "bearish" : "neutral";
+ 
+      return `${symbol} Analysis:
+ Price: $${price.toLocaleString()}
+ 24h Change: ${priceChange.toFixed(2)}% (${sentiment})
+ Market Cap: $${(marketCap/1e9).toFixed(2)}B
+ 24h Volume: $${(volume/1e9).toFixed(2)}B
+ 
+ ${getMarketSentiment(symbol, priceChange, volume/marketCap)}`;
     },
 
     'send': async (to: string, amount: string) => {
@@ -101,7 +113,27 @@ Market Cap: $${mcap}B`;
     const [_, to, amount] = text.split(' ');
     return await handlers['send'](to, amount);
   }
-
+  
+  function getMarketSentiment(symbol: string, priceChange: number, volumeToMcap: number): string {
+   const insights = [];
+   
+   if (priceChange > 5) {
+     insights.push(`${symbol} is showing strong upward momentum`);
+   } else if (priceChange < -5) {
+     insights.push(`${symbol} is experiencing significant selling pressure`);
+   }
+  
+   if (volumeToMcap > 0.2) {
+     insights.push("High trading volume indicates strong market interest");
+   }
+  
+   insights.push(priceChange > 0 
+     ? "Consider DCA (Dollar Cost Averaging) to manage volatility"
+     : "Current dip might present buying opportunities for long-term holders");
+  
+   return insights.join(". ");
+  }
+  
   return `Available Commands:
 - check balance - View your ETH balance
 - get price <token> - Get market data (ETH/BTC/SOL/USDT/USDC)
