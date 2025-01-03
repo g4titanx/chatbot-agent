@@ -1,7 +1,7 @@
-# Blockchain Chat Interface
+# Blockchain ChatBot Interface
 A web3-enabled chatbot for checking crypto balances, prices, and sending ETH.
 
-[video]
+https://github.com/user-attachments/assets/ccd039a9-aace-42c8-91d7-ff8bdcb09bf7
 
 ## Features
 
